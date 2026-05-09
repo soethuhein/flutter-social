@@ -1,4 +1,4 @@
-# flutter_refresh_app
+# flutter_social_app
 
 A Flutter message management app for blog/wiki/social-style posts with on-device SQLite storage.
 
@@ -46,7 +46,13 @@ flutter pub get
 3. Run app:
 
 ```bash
+flutter pub get
+flutter pub run flutter_launcher_icons
 flutter run
+flutter build apk --release
+build/app/outputs/flutter-apk/
+flutter run -d emulator-5554
+
 ```
 
 ## Platform Permissions
@@ -79,9 +85,3 @@ flutter test
 
 - `flutter analyze`: passed
 - `flutter test`: passed (12 tests)
-
-flutter build apk --release
-build/app/outputs/flutter-apk/
-flutter run -d emulator-5554
-flutter pub get
-flutter pub run flutter_launcher_icons

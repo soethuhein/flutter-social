@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_refresh_app/controllers/message_controller.dart';
 import 'package:flutter_refresh_app/models/message.dart';
@@ -24,68 +26,70 @@ class _MessageListScreenState extends State<MessageListScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<MessageController>(
-      builder: (BuildContext context, MessageController controller, Widget? child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(controller.hasSelection
-                ? '${controller.selectedIds.length} selected'
-                : 'Messages'),
-            actions: <Widget>[
-              if (controller.hasSelection)
-                IconButton(
-                  key: const Key('deleteSelectedButton'),
-                  onPressed: () => _confirmDeleteSelected(context, controller),
-                  icon: const Icon(Icons.delete),
-                )
-            ],
-          ),
-          floatingActionButton: FloatingActionButton(
-            key: const Key('createMessageButton'),
-            onPressed: () => _openCreate(context),
-            child: const Icon(Icons.add),
-          ),
-          body: Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: TextField(
-                  key: const Key('searchField'),
-                  controller: _searchController,
-                  onChanged: controller.searchMessages,
-                  decoration: InputDecoration(
-                    hintText: 'Search messages',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: controller.query.isEmpty
-                        ? null
-                        : IconButton(
-                            key: const Key('clearSearchButton'),
-                            onPressed: () {
-                              _searchController.clear();
-                              controller.searchMessages('');
-                            },
-                            icon: const Icon(Icons.clear),
-                          ),
-                    border: const OutlineInputBorder(),
-                  ),
+      builder:
+          (BuildContext context, MessageController controller, Widget? child) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  controller.hasSelection
+                      ? '${controller.selectedIds.length} selected'
+                      : 'Messages',
                 ),
+                actions: <Widget>[
+                  if (controller.hasSelection)
+                    IconButton(
+                      key: const Key('deleteSelectedButton'),
+                      onPressed: () =>
+                          _confirmDeleteSelected(context, controller),
+                      icon: const Icon(Icons.delete),
+                    ),
+                ],
               ),
-              Expanded(
-                child: controller.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildList(controller),
+              floatingActionButton: FloatingActionButton(
+                key: const Key('createMessageButton'),
+                onPressed: () => _openCreate(context),
+                child: const Icon(Icons.add),
               ),
-            ],
-          ),
-        );
-      },
+              body: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: TextField(
+                      key: const Key('searchField'),
+                      controller: _searchController,
+                      onChanged: controller.searchMessages,
+                      decoration: InputDecoration(
+                        hintText: 'Search messages',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: controller.query.isEmpty
+                            ? null
+                            : IconButton(
+                                key: const Key('clearSearchButton'),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  controller.searchMessages('');
+                                },
+                                icon: const Icon(Icons.clear),
+                              ),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: controller.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildList(controller),
+                  ),
+                ],
+              ),
+            );
+          },
     );
   }
 
   Widget _buildList(MessageController controller) {
     if (controller.messages.isEmpty) {
-      return const Center(
-        child: Text('No messages yet. Tap + to create one.'),
-      );
+      return const Center(child: Text('No messages yet. Tap + to create one.'));
     }
 
     return ListView.separated(
@@ -112,9 +116,27 @@ class _MessageListScreenState extends State<MessageListScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          subtitle: Text(
-            message.imagePath == null ? 'Text only' : 'Has image',
-          ),
+          // subtitle: Text(message.imagePath == null ? 'Text only' : 'Image attached'),
+          trailing: message.imagePath == null
+              ? null
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.file(
+                    File(message.imagePath!),
+                    width: 52,
+                    height: 52,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 52,
+                      height: 52,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image_outlined),
+                    ),
+                  ),
+                ),
           selected: isSelected,
           onLongPress: () {
             if (message.id != null) {
@@ -140,9 +162,9 @@ class _MessageListScreenState extends State<MessageListScreen> {
   }
 
   Future<void> _openCreate(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const MessageFormScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const MessageFormScreen()));
   }
 
   Future<void> _confirmDeleteSelected(
