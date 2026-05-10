@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_refresh_app/controllers/message_controller.dart';
 import 'package:flutter_refresh_app/models/message.dart';
 import 'package:flutter_refresh_app/services/image_service.dart';
@@ -24,7 +25,9 @@ class _MessageFormScreenState extends State<MessageFormScreen> {
   @override
   void initState() {
     super.initState();
-    _contentController = TextEditingController(text: widget.message?.content ?? '');
+    _contentController = TextEditingController(
+      text: widget.message?.content ?? '',
+    );
     _imagePath = widget.message?.imagePath;
   }
 
@@ -113,18 +116,36 @@ class _MessageFormScreenState extends State<MessageFormScreen> {
   }
 
   Future<void> _pickFromGallery() async {
-    final ImageService imageService = context.read<ImageService>();
-    final String? path = await imageService.pickFromGallery();
-    if (path != null && mounted) {
-      setState(() => _imagePath = path);
+    try {
+      final ImageService imageService = context.read<ImageService>();
+      final String? path = await imageService.pickFromGallery();
+      if (path != null && mounted) {
+        setState(() => _imagePath = path);
+      }
+    } on PlatformException {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Camera/Gallery permission required')),
+      );
     }
   }
 
   Future<void> _pickFromCamera() async {
-    final ImageService imageService = context.read<ImageService>();
-    final String? path = await imageService.pickFromCamera();
-    if (path != null && mounted) {
-      setState(() => _imagePath = path);
+    try {
+      final ImageService imageService = context.read<ImageService>();
+      final String? path = await imageService.pickFromCamera();
+      if (path != null && mounted) {
+        setState(() => _imagePath = path);
+      }
+    } on PlatformException {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Camera/Gallery permission required')),
+      );
     }
   }
 
@@ -146,6 +167,13 @@ class _MessageFormScreenState extends State<MessageFormScreen> {
     }
 
     setState(() => _isSaving = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          widget.message != null ? 'Message updated' : 'Message created',
+        ),
+      ),
+    );
     Navigator.of(context).pop();
   }
 }

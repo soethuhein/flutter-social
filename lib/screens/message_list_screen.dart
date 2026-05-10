@@ -17,6 +17,18 @@ class MessageListScreen extends StatefulWidget {
 class _MessageListScreenState extends State<MessageListScreen> {
   final TextEditingController _searchController = TextEditingController();
 
+  String _formatDateTime(DateTime dateTime) {
+    final DateTime local = dateTime.toLocal();
+    final String day = local.day.toString().padLeft(2, '0');
+    final String month = local.month.toString().padLeft(2, '0');
+    final String year = local.year.toString();
+    final TimeOfDay time = TimeOfDay.fromDateTime(local);
+    final String period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    final int hour12 = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final String minute = time.minute.toString().padLeft(2, '0');
+    return '$day/$month/$year $hour12:$minute $period';
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -33,7 +45,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
                 title: Text(
                   controller.hasSelection
                       ? '${controller.selectedIds.length} selected'
-                      : 'Messages',
+                      : 'Message Hub',
                 ),
                 actions: <Widget>[
                   if (controller.hasSelection)
@@ -99,6 +111,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
         final Message message = controller.messages[index];
         final bool isSelected =
             message.id != null && controller.selectedIds.contains(message.id);
+        final bool isModified = message.updatedAt.isAfter(message.createdAt);
         return ListTile(
           key: Key('messageTile_${message.id ?? index}'),
           leading: controller.hasSelection
@@ -117,6 +130,9 @@ class _MessageListScreenState extends State<MessageListScreen> {
             overflow: TextOverflow.ellipsis,
           ),
           // subtitle: Text(message.imagePath == null ? 'Text only' : 'Image attached'),
+          subtitle: isModified
+              ? Text('Modified ${_formatDateTime(message.updatedAt)}')
+              : null,
           trailing: message.imagePath == null
               ? null
               : ClipRRect(
